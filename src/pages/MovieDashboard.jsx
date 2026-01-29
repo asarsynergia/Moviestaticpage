@@ -782,6 +782,8 @@
 //     </div>
 //   )
 // }
+// src/pages/MovieDashboard.jsx
+
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ChevronLeft, Share2, Download, ArrowUp, Play, Calendar, MapPin, Film, Sun, Moon } from 'lucide-react'
@@ -789,259 +791,7 @@ import { useTheme } from '../components/ThemeContext'
 import RevenueChart from '../components/RevenueChart'
 import CostVsRevenueChart from '../components/CostVsRevenueChart'
 import ExpenseBreakdown from '../components/ExpenseBreakdown'
-
-// Format currency helper - always positive
-const formatCurrency = (value) => {
-  const absValue = Math.abs(value)
-  if (absValue >= 1000000) {
-    return `AED ${(absValue / 1000000).toFixed(1)}M`
-  } else if (absValue >= 1000) {
-    return `AED ${(absValue / 1000).toFixed(0)}K`
-  }
-  return `AED ${absValue.toLocaleString()}`
-}
-
-// Calculate percentage change - always positive
-const calcPercentage = (current, previous) => {
-  if (previous === 0) return { value: '0%', isPositive: true }
-  const change = ((current - previous) / previous) * 100
-  return {
-    value: `+${Math.abs(change).toFixed(1)}%`,
-    isPositive: change >= 0
-  }
-}
-
-const mockMovieData = {
-  1: {
-    id: 1,
-    title: 'Lokah Chapter 1: Chandra',
-    distribution: 'Theatrical & VOD',
-    region: 'North America',
-    status: 'In Production',
-    tagline: 'Experience the thrill of a lifetime',
-    releaseDate: 'Q2 2025',
-    director: 'Jiyen Krishnakumar',
-    genre: 'Action, Drama',
-    budget: 12500000,
-    images: [
-      'https://i.ytimg.com/vi/uwfeRKhr7Io/maxresdefault.jpg',
-      'https://i.ytimg.com/vi/u1Pz6OVZ5js/maxresdefault.jpg',
-      'https://media.assettype.com/homegrown%2F2025-09-05%2Ft3ceubz2%2FLokahChapter1ChandraWayfarerFilms.png',
-    ],
-    financials: {
-      totalRevenue: 28400000,
-      previousRevenue: 27000000,
-      theaterSharePercent: 50,
-      producerSharePercent: 30,
-      distributorSharePercent: 20,
-      productionCost: 12500000,
-      marketingCost: 4500000,
-      transportationCost: 1200000,
-      flightsCost: 850000,
-      securityCost: 500000,
-      legalCost: 300000,
-      mgRecovery: 'Recovered',
-      mgRecoveryPercent: 100,
-    }
-  },
-  2: {
-    id: 2,
-    title: 'Thudarum',
-    distribution: 'Theatrical',
-    region: 'India',
-    status: 'Post-Production',
-    tagline: 'The journey continues...',
-    releaseDate: 'Q1 2025',
-    director: 'Tharun Moorthy',
-    genre: 'Drama, Action',
-    budget: 8200000,
-    images: [
-      'https://img1.hotstarext.com/image/upload/f_auto/sources/r1/cms/prod/51/1754975720051-i',
-      'https://img.onmanorama.com/content/dam/mm/en/entertainment/entertainment-news/images/2025/4/7/thudarum-mohanlal.jpg?w=1120&h=583',
-      'https://images.timesnownews.com/thumb/msid-151590723,width-1280,height-720,resizemode-75/151590723.jpg',
-    ],
-    financials: {
-      totalRevenue: 18600000,
-      previousRevenue: 17850000,
-      theaterSharePercent: 50,
-      producerSharePercent: 30,
-      distributorSharePercent: 20,
-      productionCost: 8200000,
-      marketingCost: 2800000,
-      transportationCost: 600000,
-      flightsCost: 450000,
-      securityCost: 300000,
-      legalCost: 200000,
-      mgRecovery: 'On Track',
-      mgRecoveryPercent: 75,
-    }
-  },
-  3: {
-    id: 3,
-    title: 'F1',
-    distribution: 'Theatrical & IMAX',
-    region: 'Global',
-    status: 'In Production',
-    tagline: 'Speed. Glory. Sacrifice.',
-    releaseDate: 'Q3 2025',
-    director: 'Joseph Kosinski',
-    genre: 'Action, Sports',
-    budget: 140000000,
-    images: [
-      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKzMo35wF95AUNHZGRcarcDfIwztFxws3NU6jnmjkXl0C19Jk2OiK-4RZ79XAhkQI2byrRHvstS2EMxUPhfSfX7QtqOxNkP_L9Z7ovG1M&s=10',
-      'https://images.unsplash.com/photo-1541447271487-09612b3f49f7?w=1200',
-      'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=1200',
-    ],
-    financials: {
-      totalRevenue: 0,
-      previousRevenue: 0,
-      theaterSharePercent: 50,
-      producerSharePercent: 30,
-      distributorSharePercent: 20,
-      productionCost: 140000000,
-      marketingCost: 35000000,
-      transportationCost: 5000000,
-      flightsCost: 3500000,
-      securityCost: 2000000,
-      legalCost: 1500000,
-      mgRecovery: 'Pending',
-      mgRecoveryPercent: 0,
-    }
-  },
-  4: {
-    id: 4,
-    title: 'Kabir Singh',
-    distribution: 'Theatrical',
-    region: 'Middle East',
-    status: 'Pre-Production',
-    tagline: 'Where legends are born',
-    releaseDate: 'Q4 2025',
-    director: 'Sandeep Reddy Vanga',
-    genre: 'Action, Adventure',
-    budget: 25000000,
-    images: [
-      'https://www.dailyexcelsior.com/wp-content/uploads/2019/07/Kabir-Singh.jpg',
-      'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800',
-      'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=800',
-    ],
-    financials: {
-      totalRevenue: 42000000,
-      previousRevenue: 40000000,
-      theaterSharePercent: 50,
-      producerSharePercent: 30,
-      distributorSharePercent: 20,
-      productionCost: 25000000,
-      marketingCost: 8000000,
-      transportationCost: 1500000,
-      flightsCost: 1000000,
-      securityCost: 800000,
-      legalCost: 400000,
-      mgRecovery: 'On Track',
-      mgRecoveryPercent: 65,
-    }
-  },
-  5: {
-    id: 5,
-    title: 'Midnight Tales',
-    distribution: 'Streaming',
-    region: 'Global',
-    status: 'Development',
-    tagline: 'Some stories are best told in the dark',
-    releaseDate: 'Q1 2026',
-    director: 'Sarah Chen',
-    genre: 'Horror, Thriller',
-    budget: 5000000,
-    images: [
-      'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800',
-      'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800',
-      'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=800',
-    ],
-    financials: {
-      totalRevenue: 0,
-      previousRevenue: 0,
-      theaterSharePercent: 0,
-      producerSharePercent: 40,
-      distributorSharePercent: 60,
-      productionCost: 5000000,
-      marketingCost: 1500000,
-      transportationCost: 200000,
-      flightsCost: 150000,
-      securityCost: 100000,
-      legalCost: 100000,
-      mgRecovery: 'Pending',
-      mgRecoveryPercent: 0,
-    }
-  }
-}
-
-// Calculate derived metrics from financials - all positive values
-const calculateMetrics = (financials) => {
-  const {
-    totalRevenue,
-    previousRevenue,
-    theaterSharePercent,
-    producerSharePercent,
-    distributorSharePercent,
-    productionCost,
-    marketingCost,
-    transportationCost,
-    flightsCost,
-    securityCost,
-    legalCost,
-    mgRecovery,
-    mgRecoveryPercent
-  } = financials
-
-  const theaterShare = totalRevenue * (theaterSharePercent / 100)
-  const netSettlement = totalRevenue - theaterShare
-  const producerShare = netSettlement * (producerSharePercent / 100)
-  const distributorShare = netSettlement * (distributorSharePercent / 100)
-  const totalExpenses = productionCost + marketingCost + transportationCost + flightsCost + securityCost + legalCost
-  const netProfit = Math.max(0, totalRevenue - theaterShare - totalExpenses)
-  const grossProfitPercent = totalRevenue > 0 ? ((totalRevenue - theaterShare) / totalRevenue) * 100 : 0
-
-  const prevTheaterShare = previousRevenue * (theaterSharePercent / 100)
-  const prevNetSettlement = previousRevenue - prevTheaterShare
-  const prevProducerShare = prevNetSettlement * (producerSharePercent / 100)
-  const prevDistributorShare = prevNetSettlement * (distributorSharePercent / 100)
-  const prevTotalExpenses = totalExpenses * 0.95
-  const prevNetProfit = Math.max(0, previousRevenue - prevTheaterShare - prevTotalExpenses)
-  const prevGrossProfitPercent = previousRevenue > 0 ? ((previousRevenue - prevTheaterShare) / previousRevenue) * 100 : 0
-
-  const actualNetProfit = totalRevenue - theaterShare - totalExpenses
-  const isInProfit = actualNetProfit >= 0
-
-  return {
-    totalRevenue,
-    theaterShare,
-    netSettlement,
-    producerShare,
-    distributorShare,
-    totalExpenses,
-    netProfit,
-    grossProfitPercent,
-    mgRecovery,
-    mgRecoveryPercent,
-    isInProfit,
-    expenses: {
-      production: productionCost,
-      marketing: marketingCost,
-      transportation: transportationCost,
-      flights: flightsCost,
-      security: securityCost,
-      legal: legalCost
-    },
-    changes: {
-      revenue: calcPercentage(totalRevenue, previousRevenue),
-      theaterShare: calcPercentage(theaterShare, prevTheaterShare),
-      producerShare: calcPercentage(producerShare, prevProducerShare),
-      distributorShare: calcPercentage(distributorShare, prevDistributorShare),
-      expenses: calcPercentage(totalExpenses, prevTotalExpenses),
-      netProfit: calcPercentage(netProfit, prevNetProfit),
-      grossProfit: calcPercentage(grossProfitPercent, prevGrossProfitPercent)
-    }
-  }
-}
+import { getMovieById, formatCurrency, calculateMetrics } from '../pages/moviesData'
 
 const MetricCard = ({ label, value, change, isPositive, theme, accentColor }) => {
   return (
@@ -1056,6 +806,80 @@ const MetricCard = ({ label, value, change, isPositive, theme, accentColor }) =>
   )
 }
 
+// Auto-Sliding Image Component
+// const AutoImageSlider = ({ images, title, isDarkMode }) => {
+//   const [currentIndex, setCurrentIndex] = useState(0)
+
+//   useEffect(() => {
+//     const interval = setInterval(() => {
+//       setCurrentIndex((prev) => (prev + 1) % images.length)
+//     }, 4000)
+
+//     return () => clearInterval(interval)
+//   }, [images.length])
+
+//   return (
+//     <>
+//       {/* Mobile: Full width image at top */}
+//       <div className="block lg:hidden w-full h-[250px] sm:h-[300px] relative overflow-hidden">
+//         {images.map((image, index) => (
+//           <div
+//             key={index}
+//             className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+//               currentIndex === index ? 'opacity-100' : 'opacity-0'
+//             }`}
+//           >
+//             <img
+//               src={image}
+//               alt={`${title} - Scene ${index + 1}`}
+//               className="w-full h-full object-cover object-center"
+//               onError={(e) => {
+//                 e.target.src = 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800'
+//               }}
+//             />
+//           </div>
+//         ))}
+//         <div 
+//           className="absolute inset-0"
+//           style={{ 
+//             background: isDarkMode 
+//               ? 'linear-gradient(to top, #0d0d0d 0%, rgba(13,13,13,0.5) 50%, transparent 100%)'
+//               : 'linear-gradient(to top, #faf9f7 0%, rgba(250,249,247,0.3) 50%, transparent 100%)'
+//           }}
+//         />
+//       </div>
+
+//       {/* Desktop: Positioned to the right */}
+//       <div className="hidden lg:block absolute right-0 top-0 w-2/3 h-[500px] overflow-hidden">
+//         {images.map((image, index) => (
+//           <div
+//             key={index}
+//             className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+//               currentIndex === index ? 'opacity-100' : 'opacity-0'
+//             }`}
+//           >
+//             <img
+//               src={image}
+//               alt={`${title} - Scene ${index + 1}`}
+//               className="w-full h-full object-cover object-center"
+//               onError={(e) => {
+//                 e.target.src = 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800'
+//               }}
+//             />
+//           </div>
+//         ))}
+//         <div 
+//           className="absolute inset-0"
+//           style={{ 
+//             background: isDarkMode 
+//               ? 'linear-gradient(to right, #0d0d0d 0%, rgba(13,13,13,0.7) 30%, transparent 60%)'
+//               : 'linear-gradient(to right, #faf9f7 0%, rgba(250,249,247,0.5) 25%, transparent 50%)'
+//           }}
+//         />
+//       </div>
+//     </>
+//   )
+// }
 // Auto-Sliding Image Component
 const AutoImageSlider = ({ images, title, isDarkMode }) => {
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -1094,7 +918,7 @@ const AutoImageSlider = ({ images, title, isDarkMode }) => {
           style={{ 
             background: isDarkMode 
               ? 'linear-gradient(to top, #0d0d0d 0%, rgba(13,13,13,0.5) 50%, transparent 100%)'
-              : 'linear-gradient(to top, #faf9f7 0%, rgba(250,249,247,0.3) 50%, transparent 100%)'
+              : 'linear-gradient(to top, #faf9f7 0%, rgba(250,249,247,0.1) 30%, transparent 60%)'
           }}
         />
       </div>
@@ -1123,21 +947,68 @@ const AutoImageSlider = ({ images, title, isDarkMode }) => {
           style={{ 
             background: isDarkMode 
               ? 'linear-gradient(to right, #0d0d0d 0%, rgba(13,13,13,0.7) 30%, transparent 60%)'
-              : 'linear-gradient(to right, #faf9f7 0%, rgba(250,249,247,0.5) 25%, transparent 50%)'
+              : 'linear-gradient(to right, #faf9f7 0%, rgba(250,249,247,0.2) 15%, transparent 40%)'
           }}
         />
       </div>
     </>
   )
 }
-
 export default function MovieDashboard() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { isDarkMode, toggleTheme, theme, accentColor } = useTheme()
   
-  const movieData = mockMovieData[id] || mockMovieData[1]
+  // Get movie data from common data file
+  const movieData = getMovieById(id)
   const metrics = calculateMetrics(movieData.financials)
+
+  // Get timeline data from movie
+  const timelineItems = [
+    { 
+      title: 'LOI Signing', 
+      date: movieData.timeline.loiSigning.date, 
+      status: movieData.timeline.loiSigning.status, 
+      color: movieData.timeline.loiSigning.status === 'Completed' ? 'text-green-500' : (movieData.timeline.loiSigning.status === 'In Progress' ? (isDarkMode ? 'text-yellow-400' : 'text-yellow-600') : (isDarkMode ? 'text-orange-400' : 'text-orange-600')),
+      bgColor: movieData.timeline.loiSigning.status === 'Completed' ? '#22c55e' : (movieData.timeline.loiSigning.status === 'In Progress' ? '#eab308' : '#f97316')
+    },
+    { 
+      title: 'Rights Acquisition', 
+      date: movieData.timeline.rightsAcquisition.date, 
+      status: movieData.timeline.rightsAcquisition.status, 
+      color: movieData.timeline.rightsAcquisition.status === 'Completed' ? 'text-green-500' : (movieData.timeline.rightsAcquisition.status === 'In Progress' ? (isDarkMode ? 'text-yellow-400' : 'text-yellow-600') : (isDarkMode ? 'text-orange-400' : 'text-orange-600')),
+      bgColor: movieData.timeline.rightsAcquisition.status === 'Completed' ? '#22c55e' : (movieData.timeline.rightsAcquisition.status === 'In Progress' ? '#eab308' : '#f97316')
+    },
+    { 
+      title: 'Settlements', 
+      date: movieData.timeline.settlements.date, 
+      status: movieData.timeline.settlements.status, 
+      color: movieData.timeline.settlements.status === 'Completed' ? 'text-green-500' : (movieData.timeline.settlements.status === 'In Progress' ? (isDarkMode ? 'text-yellow-400' : 'text-yellow-600') : (isDarkMode ? 'text-orange-400' : 'text-orange-600')),
+      bgColor: movieData.timeline.settlements.status === 'Completed' ? '#22c55e' : (movieData.timeline.settlements.status === 'In Progress' ? '#eab308' : '#f97316')
+    },
+    { 
+      title: 'Final Closure', 
+      date: `ETA: ${movieData.timeline.finalClosure.date}`, 
+      status: movieData.timeline.finalClosure.status, 
+      color: movieData.timeline.finalClosure.status === 'Completed' ? 'text-green-500' : (movieData.timeline.finalClosure.status === 'In Progress' ? (isDarkMode ? 'text-yellow-400' : 'text-yellow-600') : (isDarkMode ? 'text-orange-400' : 'text-orange-600')),
+      bgColor: movieData.timeline.finalClosure.status === 'Completed' ? '#22c55e' : (movieData.timeline.finalClosure.status === 'In Progress' ? '#eab308' : '#f97316')
+    },
+  ]
+
+  // Get legal documents from movie
+  const legalItems = [
+    { title: 'Censor Certificate', status: movieData.legal.censorCertificate },
+    { title: 'Satellite Authorization', status: movieData.legal.satelliteAuthorization },
+    { title: 'Distribution Rights', status: movieData.legal.distributionRights },
+  ]
+
+  // Get document counts from movie
+  const documentItems = [
+    { name: 'Contracts', count: movieData.documents.contracts }, 
+    { name: 'Expense Bills', count: movieData.documents.expenseBills },
+    { name: 'Legal Documents', count: movieData.documents.legalDocuments },
+    { name: 'Reports', count: movieData.documents.reports }
+  ]
 
   return (
     <div className={`min-h-screen ${theme.bg} transition-colors duration-300`}>
@@ -1174,22 +1045,23 @@ export default function MovieDashboard() {
         <AutoImageSlider images={movieData.images} title={movieData.title} isDarkMode={isDarkMode} />
 
         {/* Desktop: Background Gradient Overlays */}
-        <div 
-          className="hidden lg:block absolute inset-0 z-10 pointer-events-none"
-          style={{ 
-            background: isDarkMode 
-              ? 'linear-gradient(to right, #0d0d0d 0%, rgba(13,13,13,0.85) 35%, rgba(13,13,13,0.4) 50%, transparent 70%)'
-              : 'linear-gradient(to right, #faf9f7 0%, rgba(250,249,247,0.7) 30%, rgba(250,249,247,0.3) 45%, transparent 60%)'
-          }}
-        />
-        <div 
-          className="hidden lg:block absolute inset-0 z-10 pointer-events-none"
-          style={{ 
-            background: isDarkMode 
-              ? 'linear-gradient(to top, #0d0d0d 0%, transparent 40%, rgba(13,13,13,0.3) 100%)'
-              : 'linear-gradient(to top, #faf9f7 0%, transparent 30%, transparent 100%)'
-          }}
-        />
+       
+<div 
+  className="hidden lg:block absolute inset-0 z-10 pointer-events-none"
+  style={{ 
+    background: isDarkMode 
+      ? 'linear-gradient(to right, #0d0d0d 0%, rgba(13,13,13,0.85) 35%, rgba(13,13,13,0.4) 50%, transparent 70%)'
+      : 'linear-gradient(to right, #faf9f7 0%, rgba(250,249,247,0.4) 20%, rgba(250,249,247,0.1) 35%, transparent 50%)'
+  }}
+/>
+<div 
+  className="hidden lg:block absolute inset-0 z-10 pointer-events-none"
+  style={{ 
+    background: isDarkMode 
+      ? 'linear-gradient(to top, #0d0d0d 0%, transparent 40%, rgba(13,13,13,0.3) 100%)'
+      : 'linear-gradient(to top, #faf9f7 0%, rgba(250,249,247,0.3) 20%, transparent 40%)'
+  }}
+/>
 
         {/* Hero Content */}
         <div className="relative z-20 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 lg:pt-24 pb-8 lg:pb-16">
@@ -1428,8 +1300,8 @@ export default function MovieDashboard() {
         {/* Visual Analytics Section */}
         <h2 className={`text-xl sm:text-2xl font-bold ${theme.text} mb-4 sm:mb-6`}>Visual Analytics Zone</h2>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <RevenueChart isDarkMode={isDarkMode} />
-          <CostVsRevenueChart isDarkMode={isDarkMode} />
+          <RevenueChart isDarkMode={isDarkMode} movieData={movieData} />
+          <CostVsRevenueChart isDarkMode={isDarkMode} movieData={movieData} />
           <ExpenseBreakdown isDarkMode={isDarkMode} expenses={metrics.expenses} />
         </div>
 
@@ -1514,12 +1386,7 @@ export default function MovieDashboard() {
         {/* Activity Timeline */}
         <h2 className={`text-xl sm:text-2xl font-bold ${theme.text} mb-4 sm:mb-6`}>Project Activity Timeline</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-          {[
-            { title: 'LOI Signing', date: 'Jan 15, 2023', status: 'Completed', color: 'text-green-500', bgColor: '#22c55e' },
-            { title: 'Rights Acquisition', date: 'Feb 01, 2023', status: 'Completed', color: 'text-green-500', bgColor: '#22c55e' },
-            { title: 'Settlements', date: 'Ongoing', status: 'In Progress', color: isDarkMode ? 'text-yellow-400' : 'text-yellow-600', bgColor: '#eab308' },
-            { title: 'Final Closure', date: `ETA: ${movieData.releaseDate}`, status: 'Pending', color: isDarkMode ? 'text-orange-400' : 'text-orange-600', bgColor: '#f97316' },
-          ].map((item, idx) => (
+          {timelineItems.map((item, idx) => (
             <div key={idx} className={`${theme.cardBg} border ${theme.cardBorder} rounded-xl p-3 sm:p-4 shadow-sm`}>
               <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full mb-2 sm:mb-3" style={{ backgroundColor: item.bgColor }}></div>
               <p className={`font-semibold ${theme.text} mb-1 text-sm sm:text-base`}>{item.title}</p>
@@ -1534,11 +1401,7 @@ export default function MovieDashboard() {
           <div>
             <h2 className={`text-xl sm:text-2xl font-bold ${theme.text} mb-4 sm:mb-6`}>Legal & Compliance</h2>
             <div className="grid gap-3 sm:gap-4">
-              {[
-                { title: 'Censor Certificate', status: movieData.status === 'In Production' || movieData.status === 'Post-Production' ? 'Approved' : 'Pending' },
-                { title: 'Satellite Authorization', status: movieData.status === 'Post-Production' ? 'Approved' : 'Pending' },
-                { title: 'Distribution Rights', status: 'Approved' },
-              ].map((item, idx) => (
+              {legalItems.map((item, idx) => (
                 <div key={idx} className={`${theme.cardBg} border ${theme.cardBorder} rounded-xl p-4 shadow-sm`}>
                   <p className={`font-semibold ${theme.text} mb-2 text-sm sm:text-base`}>{item.title}</p>
                   <p className={`text-xs font-bold mb-3 inline-block px-2 py-1 rounded ${item.status === 'Approved' ? 'bg-green-500/20 text-green-500' : 'bg-yellow-500/20 text-yellow-600'}`}>
@@ -1558,12 +1421,7 @@ export default function MovieDashboard() {
           <div>
             <h2 className={`text-xl sm:text-2xl font-bold ${theme.text} mb-4 sm:mb-6`}>Document Repository</h2>
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              {[
-                { name: 'Contracts', count: 12 }, 
-                { name: 'Expense Bills', count: 48 },
-                { name: 'Legal Documents', count: 8 },
-                { name: 'Reports', count: 15 }
-              ].map((doc, idx) => (
+              {documentItems.map((doc, idx) => (
                 <div key={idx} className={`${theme.cardBg} border ${theme.cardBorder} rounded-xl p-4 sm:p-6 flex flex-col items-center justify-center ${theme.accentHover} transition-all cursor-pointer shadow-sm`}>
                   <span className="text-3xl sm:text-4xl mb-2">📁</span>
                   <p className={`${theme.text} font-semibold text-center text-sm sm:text-base`}>{doc.name}</p>
